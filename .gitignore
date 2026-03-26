@@ -218,3 +218,6 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 Ignored/
+
+.dotnet_cli_home/
+References.txt
