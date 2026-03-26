@@ -18,4 +18,8 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SADeckManager.Core\SADeckManager.Core.csproj" />
+  </ItemGroup>
 </Project>
