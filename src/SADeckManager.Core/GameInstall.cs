@@ -7,7 +7,7 @@ public enum GameId
 }
 
 public sealed record GameInstall(
-    GameId Id,
+    GameId Game,
     string SteamAppId,
     string LibraryRoot,
     string InstallDir,
