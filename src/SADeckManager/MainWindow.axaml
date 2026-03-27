@@ -76,7 +76,7 @@
                                         <ScrollViewer>
                                                 <ItemsControl x:Name="ModsItemsControl">
                                                         <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
+                                                                <DataTemplate x:DataType="local:ModItem">
                                                                         <CheckBox
                                                                                 Margin="0,2,0,2"
                                                                                 Checked="OnModCheckedChanged"
