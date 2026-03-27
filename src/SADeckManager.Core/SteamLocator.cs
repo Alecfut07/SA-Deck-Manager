@@ -25,4 +25,24 @@ public static class SteamLocator
 
         return results;
     }
+
+    private static void TryAdd(List<GameInstall> results, IReadOnlyList<string> libraryRoots, GameId game, string appId, string commonDirName)
+    {
+        foreach (var lib in libraryRoots)
+        {
+            var installDir = Path.Combine(lib, "steamapps", "common", commonDirName);
+            if (!Directory.Exists(installDir)) continue;
+
+            var compatdata = Path.Combine(lib, "steamapps", "compatdata", appId);
+            var prefix = Path.Combine(compatdata, "pfx"); // Proton prefix root
+
+            results.Add(new GameInstall(
+                Game: game,
+                SteamAppId: appId,
+                LibraryRoot: lib,
+                InstallDir: installDir,
+                ProtonPrefixDir: prefix
+            ));
+        }
+    }
 }
