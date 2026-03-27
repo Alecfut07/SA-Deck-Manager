@@ -45,4 +45,21 @@ public static class SteamLocator
             ));
         }
     }
+
+    private static string? DefaultSteamRoot()
+    {
+        // Steam Deck typically:
+        // ~/.local/share/Steam
+        // (also sometimes ~/.steam/steam as a symlink)
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (string.IsNullOrWhiteSpace(home)) return null;
+
+        var a = Path.Combine(home, ".local", "share", "Steam");
+        if (Directory.Exists(a)) return a;
+
+        var b = Path.Combine(home, ".steam", "steam");
+        if (Directory.Exists(b)) return b;
+
+        return null;
+    }
 }
