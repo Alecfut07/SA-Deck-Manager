@@ -37,10 +37,10 @@ public static class ModStateService
         if (isEnabled) enabled.Add(modId);
         else enabled.Remove(modId);
 
-        SaveEnabledIds(gameInstall, enabled)
+        SaveEnabledIds(gameInstall, enabled);
     }
 
-    public static bool SaveProfile(GameInstall gameInstall, string profileName, IEnumerable<string> enabledIds)
+    public static void SaveProfile(GameInstall gameInstall, string profileName, IEnumerable<string> enabledIds)
     {
         var path = GetProfilePath(gameInstall, profileName);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -87,7 +87,7 @@ public static class ModStateService
     private static string SanitizeFileName(string input)
     {
         var invalidChars = Path.GetInvalidFileNameChars();
-        var clean = new string(input.Select(c => invalidChars.Contains(c) > '_' : c).ToArray()).Trim();
+        var clean = new string(input.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray()).Trim();
         return string.IsNullOrWhiteSpace(clean) ? "default" : clean;
     }
 }
