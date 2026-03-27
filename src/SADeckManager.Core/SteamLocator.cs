@@ -62,4 +62,26 @@ public static class SteamLocator
 
         return null;
     }
+
+    private static IReadOnlyList<string> GetLibraryRoots(string steamRoot)
+    {
+        var roots = new List<string> { steamRoot };
+
+        // libraryfolders.vdf is the canonical place to find extra libraries
+        var vdfPath = Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf");
+        if (!File.Exists(vdfPath)) return roots;
+
+        var text = File.ReadAllText(vdfPath);
+
+        // Minimal parse: match lines like: "path" "/run/media/mmcblk0p1/steamlibrary"
+        var rx = new Regex("\"path\"\\s*\"(?<p>[^\"]+)\"", RegexOptions.Compiled);
+        foreach (Match m in rx.Matches(text))
+        {
+            var p = m.Groups["p"].Value.Replace("\\\\", "\\");
+            if (string.IsNullOrWhiteSpace(p)) continue;
+            if (Directory.Exists(p) && !roots.Contains(p)) roots.Add(p);
+        }
+
+        return roots;
+    }
 }
