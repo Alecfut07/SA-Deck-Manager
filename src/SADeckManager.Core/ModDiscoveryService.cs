@@ -9,7 +9,7 @@ public static class ModDiscoveryService
         PropertyNameCaseInsensitive = true
     };
 
-    public static async IReadOnlyList<ModInfo> DiscoverMods(GameInstall gameInstall)
+    public static IReadOnlyList<ModInfo> DiscoverMods(GameInstall gameInstall)
     {
         var modsRoot = Path.Combine(gameInstall.InstallDir, "mods");
         if (!Directory.Exists(modsRoot)) return [];
