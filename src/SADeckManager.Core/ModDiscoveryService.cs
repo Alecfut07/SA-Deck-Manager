@@ -11,51 +11,31 @@ public static class ModDiscoveryService
 
     public static IReadOnlyList<ModInfo> DiscoverMods(GameInstall gameInstall)
     {
-        var modsRoot = Path.Combine(gameInstall.InstallDir, "mods");
-        if (!Directory.Exists(modsRoot)) return [];
+        var modsRoot = SaLoaderPaths.ModsRoot(gameInstall);
+        var list = new List<ModInfo>();
 
-        var result = new List<ModInfo>();
-
-        foreach (var dir in Directory.EnumerateDirectories(modsRoot))
+        foreach (var (rel, iniPath) in ModIniScanner.EnumerateModInis(modsRoot))
         {
-            var folderName = Path.GetFileName(dir);
-            var manifestPath = Path.Combine(dir, "mod.json");
+            var dir = Path.GetDirectoryName(iniPath)!;
+            var meta = ModIniReader.Read(iniPath);
+            var id = string.IsNullOrWhiteSpace(meta.ModId) ? rel : meta.ModId.Trim();
+            var name = string.IsNullOrWhiteSpace(meta.Name) ? Path.GetFileName(dir) : meta.Name;
 
-            ModManifest? manifest = null;
-            if (File.Exists(manifestPath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(manifestPath);
-                    manifest = JsonSerializer.Deserialize<ModManifest>(json, JsonOptions);
-                }
-                catch
-                {
-                    // Ignore bad manifest and fallback to folder-based defaults.
-                }
-            }
-
-            var id = NormalizeId(manifest?.Id, folderName);
-            var relPath = ModIniScanner.NormalizeRel(folderName);
-            var name = string.IsNullOrWhiteSpace(manifest?.Name) ? folderName : manifest!.Name!;
-            var author = manifest?.Author?.Trim() ?? string.Empty;
-            var version = manifest?.Version?.Trim() ?? string.Empty;
-            var description = manifest?.Description?.Trim() ?? string.Empty;
-
-            result.Add(new ModInfo(
+            list.Add(new ModInfo(
                 Id: id,
-                RelPath: relPath,
+                RelPath: string.IsNullOrEmpty(rel) ? Path.GetFileName(dir) : rel,
                 Name: name,
-                Author: author,
-                Version: version,
-                Description: description,
+                Author: meta.Author,
+                Version: meta.Version,
+                Description: meta.Description,
                 DirectoryPath: dir
             ));
         }
 
-        return result
-            .OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        // Optional: add folders taht only have mod.json no mod.ini (your old behavior)
+        // ...
+
+        return list.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     private static string NormalizeId(string? preferred, string fallbackFolderName)
