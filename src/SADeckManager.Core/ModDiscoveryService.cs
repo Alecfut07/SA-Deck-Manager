@@ -36,6 +36,7 @@ public static class ModDiscoveryService
             }
 
             var id = NormalizeId(manifest?.Id, folderName);
+            var relPath = ModIniScanner.NormalizeRel(folderName);
             var name = string.IsNullOrWhiteSpace(manifest?.Name) ? folderName : manifest!.Name!;
             var author = manifest?.Author?.Trim() ?? string.Empty;
             var version = manifest?.Version?.Trim() ?? string.Empty;
@@ -43,6 +44,7 @@ public static class ModDiscoveryService
 
             result.Add(new ModInfo(
                 Id: id,
+                RelPath: relPath,
                 Name: name,
                 Author: author,
                 Version: version,
