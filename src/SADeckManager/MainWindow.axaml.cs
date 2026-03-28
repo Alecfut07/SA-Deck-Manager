@@ -2,8 +2,6 @@ using Avalonia.Controls;
 using SADeckManager.Core;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.IO;
 using System.Linq;
 
@@ -12,14 +10,17 @@ namespace SADeckManager;
 public partial class MainWindow : Window
 {
     private GameInstall? _activeGame;
+    private SaProfilesIndex? _profilesIndex;
     private readonly List<ModItem> _modItems = [];
 
     public MainWindow()
     {
         InitializeComponent();
-        ProfileNameTextBox.Text = "default";
         LoadData();
     }
+
+    private static string NormKey(string s) =>
+        ModIniScanner.NormalizeRel(s.Replace('\\', '/'));
 
     private void LoadData()
     {
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
         if (installs.Count == 0)
         {
             _activeGame = null;
+            _profilesIndex = null;
             _modItems.Clear();
             ModsItemsControl.ItemsSource = null;
             GameInfoText.Text = "No installs found. Expected Steam root: ~/.local/share/Steam";
@@ -35,75 +37,132 @@ public partial class MainWindow : Window
         }
 
         _activeGame = installs[0];
-        var mods = ModDiscoveryService.DiscoverMods(_activeGame);
-        var enabled = ModStateService.LoadEnabledIds(_activeGame).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _profilesIndex = SaProfileIndexService.LoadOrCreate(_activeGame);
 
-        _modItems.Clear();
-        foreach (var mod in mods)
-        {
-            _modItems.Add(new ModItem
-            {
-                Id = mod.Id,
-                Label = $"{mod.Name} ({mod.Id})",
-                IsEnabled = enabled.Contains(mod.Id)
-            });
-        }
+        ProfileCombo.ItemsSource = _profilesIndex.ProfilesList;
+        var idx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
+        _profilesIndex.ProfileIndex = idx;
+        ProfileCombo.SelectedIndex = idx;
 
-        ModsItemsControl.ItemsSource = _modItems;
+        RebuildModListFromDiscoveryAndProfile();
 
         GameInfoText.Text =
             $"Game: {_activeGame.Game}\n" +
             $"Install: {_activeGame.InstallDir}\n" +
-            $"Mods: {Path.Combine(_activeGame.InstallDir, "mods")}";
+            $"Mods: {SaLoaderPaths.ModsRoot(_activeGame)}\n" +
+            $"Profiles: {SaLoaderPaths.ProfilesJson(_activeGame)}";
 
         UpdateStatus($"Loaded {_modItems.Count} mods.");
     }
 
+    private void RebuildModListFromDiscoveryAndProfile()
+    {
+        if (_activeGame is null || _profilesIndex is null) return;
+
+        var fn = SaProfileIndexService.GetCurrentProfileFilename(_profilesIndex);
+        if (string.IsNullOrEmpty(fn))
+        {
+            UpdateStatus("No profile selected.");
+            return;
+        }
+
+        var discovered = ModDiscoveryService.DiscoverMods(_activeGame)
+            .ToDictionary(m => NormKey(m.RelPath), StringComparer.OrdinalIgnoreCase);
+
+        var savedOrder = SaGameSettingsModListPatcher.ReadModsList(_activeGame, fn)
+            .Select(NormKey)
+            .ToList();
+
+        var enabled = SaGameSettingsModListPatcher.ReadEnabledMods(_activeGame, fn)
+            .Select(NormKey)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var ordered = new List<ModInfo>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var key in savedOrder)
+        {
+            if (discovered.TryGetValue(key, out var m))
+            {
+                ordered.Add(m);
+                seen.Add(key);
+            }
+        }
+
+        foreach (var m in discovered.Values.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var k = NormKey(m.RelPath);
+            if (seen.Add(k))
+                ordered.Add(m);
+        }
+
+        _modItems.Clear();
+        foreach (var mod in ordered)
+        {
+            var rel = NormKey(mod.RelPath);
+            _modItems.Add(new ModItem
+            {
+                Id = mod.Id,
+                RelPath = mod.RelPath,
+                Label = $"{mod.Name} [{rel}]",
+                IsEnabled = enabled.Contains(rel)
+            });
+        }
+
+        ModsItemsControl.ItemsSource = null;
+        ModsItemsControl.ItemsSource = _modItems;
+    }
+
+    private void PersistCurrentProfileToDisk()
+    {
+        if (_activeGame is null || _profilesIndex is null) return;
+
+        var fn = SaProfileIndexService.GetCurrentProfileFilename(_profilesIndex);
+        if (string.IsNullOrEmpty(fn)) return;
+
+        var order = _modItems.Select(m => m.RelPath).ToList();
+        var enabledInUiOrder = _modItems.Where(m => m.IsEnabled).Select(m => m.RelPath).ToList();
+
+        SaGameSettingsModListPatcher.WriteModLists(_activeGame, fn, order, enabledInUiOrder);
+    }
+
+    private void OnProfileSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_activeGame is null || _profilesIndex is null || ProfileCombo.SelectedIndex < 0) return;
+
+        _profilesIndex.ProfileIndex = ProfileCombo.SelectedIndex;
+        SaProfileIndexService.Save(_activeGame, _profilesIndex);
+        RebuildModListFromDiscoveryAndProfile();
+        UpdateStatus($"Profile {_profilesIndex.ProfilesList[_profilesIndex.ProfileIndex].Name}");
+    }
+
     private void OnModCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (_activeGame is null || sender is not CheckBox cb || cb.Tag is not string modId) return;
+        if (_activeGame is null || sender is not CheckBox cb || cb.Tag is not string relPath) return;
 
         var isEnabled = cb.IsChecked == true;
-        ModStateService.SetEnabled(_activeGame, modId, isEnabled);
-        UpdateStatus($"{(isEnabled ? "Enabled" : "Disabled")}: {modId}");
+        PersistCurrentProfileToDisk();
+        UpdateStatus($"{(isEnabled ? "Enabled" : "Disabled")}: {relPath}");
     }
 
     private void OnSaveProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (_activeGame is null) return;
+        if (_activeGame is null || _profilesIndex is null) return;
 
-        var profile = SafeProfileName();
-        var enabledIds = _modItems.Where(m => m.IsEnabled).Select(m => m.Id);
-        ModStateService.SaveProfile(_activeGame, profile, enabledIds);
-        UpdateStatus($"Profile saved: {profile}");
+        PersistCurrentProfileToDisk();
+        SaProfileIndexService.Save(_activeGame, _profilesIndex);
+        UpdateStatus($"Saved mod lists → {SaProfileIndexService.GetCurrentProfileFilename(_profilesIndex)}");
     }
 
     private void OnLoadProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (_activeGame is null) return;
-
-        var profile = SafeProfileName();
-        var enabledIds = ModStateService.LoadProfile(_activeGame, profile)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var item in _modItems)
-        {
-            item.IsEnabled = enabledIds.Contains(item.Id);
-        }
-
-        ModStateService.SaveEnabledIds(_activeGame, enabledIds);
-        UpdateStatus($"Profile loaded: {profile}");
+        RebuildModListFromDiscoveryAndProfile();
+        UpdateStatus($"Reloaded mod list + enable flags from disk.");
     }
 
     private void OnRefreshClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         LoadData();
-    }
-
-    private string SafeProfileName()
-    {
-        var raw = ProfileNameTextBox.Text?.Trim();
-        return string.IsNullOrWhiteSpace(raw) ? "default" : raw;
     }
 
     private void UpdateStatus(string message)

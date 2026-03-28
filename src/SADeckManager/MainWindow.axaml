@@ -2,6 +2,7 @@
         x:Class="SADeckManager.MainWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="using:SADeckManager.Core"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:SADeckManager"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -9,6 +10,8 @@
         d:DesignHeight="620"
         d:DesignWidth="980"
         mc:Ignorable="d">
+
+        <!--  ... row 0 title unchanged ...  -->
         <Grid Margin="16" RowDefinitions="Auto,Auto,*">
                 <TextBlock
                         FontSize="20"
@@ -20,10 +23,16 @@
                         Margin="0,12,0,12"
                         ColumnDefinitions="*,Auto,Auto,Auto"
                         ColumnSpacing="8">
-                        <TextBox
-                                x:Name="ProfileNameTextBox"
-                                VerticalContentAlignment="Center"
-                                Watermark="Profile name (example: default)" />
+                        <ComboBox
+                                x:Name="ProfileCombo"
+                                VerticalAlignment="Center"
+                                SelectionChanged="OnProfileSelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="core:SaProfileEntry">
+                                                <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                        </ComboBox>
                         <Button
                                 x:Name="RefreshButton"
                                 Grid.Column="1"
@@ -36,7 +45,6 @@
                                 Content="Save Profile" />
                         <Button
                                 x:Name="LoadProfileButton"
-                                Grid.Column="3"
                                 Click="OnLoadProfileClick"
                                 Content="Load Profile" />
                 </Grid>
@@ -50,7 +58,7 @@
                                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                                 BorderThickness="1"
                                 CornerRadius="8">
-                                <StackPanel>
+                                <StackPanel Spacing="6">
                                         <TextBlock
                                                 x:Name="GameInfoText"
                                                 FontFamily="Monospace"
@@ -83,7 +91,7 @@
                                                                                 Checked="OnModCheckedChanged"
                                                                                 Content="{Binding Label}"
                                                                                 IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                                                                Tag="{Binding Id}"
+                                                                                Tag="{Binding RelPath}"
                                                                                 Unchecked="OnModCheckedChanged" />
                                                                 </DataTemplate>
                                                         </ItemsControl.ItemTemplate>
@@ -92,6 +100,5 @@
                                 </StackPanel>
                         </Border>
                 </Grid>
-
         </Grid>
 </Window>
