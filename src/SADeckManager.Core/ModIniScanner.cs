@@ -37,7 +37,7 @@ public static class ModIniScanner
     }
 
     /// <summary>SA Mod Manager uses folder-relative tags; normalize separators for comparisons.</summary>
-    public static string NormalizeRel(string rel)
+    public static string NormalizeRel(string relPath)
     {
         var s = relPath.Replace('\\', '/').Trim('/');
         return s;
