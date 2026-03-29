@@ -12,6 +12,8 @@ public partial class MainWindow : Window
     private GameInstall? _activeGame;
     private SaProfilesIndex? _profilesIndex;
     private readonly List<ModItem> _modItems = [];
+    private readonly List<GameInstall> _allInstalls = [];
+    private bool _suppressGameCombo;
 
     public MainWindow()
     {
@@ -168,5 +170,31 @@ public partial class MainWindow : Window
     private void UpdateStatus(string message)
     {
         StatusText.Text = message;
+    }
+
+    private static string FormatGameLabel(GameInstall g)
+    {
+        var title = g.Game switch
+        {
+            GameId.SonicAdventureDX => "Sonic Adventure DX",
+            GameId.SonicAdventure2 => "Sonic Adventure 2",
+            _ => g.Game.ToString()
+        };
+        return $"{title} (Steam {g.SteamAppId})";
+    }
+
+    private void UpdateGameInfoBanner()
+    {
+        if (_activeGame is null)
+        {
+            GameInfoText.Text = "No game selected.";
+            return;
+        }
+
+        GameInfoText.Text =
+            $"Game: {_activeGame.Game}\n" +
+            $"Install: {_activeGame.InstallDir}\n" +
+            $"Mods: {SaLoaderPaths.ModsRoot(_activeGame)}\n" +
+            $"Profiles: {SaLoaderPaths.ProfilesJson(_activeGame)}";
     }
 }
