@@ -190,6 +190,27 @@ public partial class MainWindow : Window
         UpdateStatus($"Reloaded mod list + enable flags from disk.");
     }
 
+    private void OnGameSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressGameCombo)
+            return;
+
+        if (GameCombo.SelectedItem is not GameListEntry entry)
+            return;
+
+        _activeGame = entry.Install;
+        _profilesIndex = SaProfileIndexService.LoadOrCreate(_activeGame);
+
+        ProfileCombo.ItemsSource = _profilesIndex.ProfilesList;
+        var pIdx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
+        _profilesIndex.ProfileIndex = pIdx;
+        ProfileCombo.SelectedIndex = pIdx;
+
+        RebuildModListFromDiscoveryAndProfile();
+        UpdateGameInfoBanner();
+        UpdateStatus($"Game: {FormatGameLabel(_activeGame)}");
+    }
+
     private void OnRefreshClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         LoadData();
