@@ -26,11 +26,19 @@ public partial class MainWindow : Window
 
     private void LoadData()
     {
-        var installs = SteamLocator.FindInstalls();
-        if (installs.Count == 0)
+        _allInstalls.Clear();
+        _allInstalls.AddRange(
+            SteamLocator.FindInstalls()
+                .OrderBy(i => i.Game)
+                .ThenBy(i => i.InstallDir, StringComparer.OrdinalIgnoreCase)
+        );
+
+        if (_allInstalls.Count == 0)
         {
             _activeGame = null;
             _profilesIndex = null;
+            GameCombo.ItemsSource = null;
+            ProfileCombo.ItemsSource = null;
             _modItems.Clear();
             ModsItemsControl.ItemsSource = null;
             GameInfoText.Text = "No installs found. Expected Steam root: ~/.local/share/Steam";
@@ -38,22 +46,42 @@ public partial class MainWindow : Window
             return;
         }
 
-        _activeGame = installs[0];
+        var entries = _allInstalls
+            .Select(i => new GameListEntry(i, FormatGameLabel(i)))
+            .ToList();
+
+        _suppressGameCombo = true;
+        try
+        {
+            GameCombo.ItemsSource = entries;
+
+            var selectIndex = 0;
+            if (_activeGame is not null)
+            {
+                var idx = _allInstalls.FindIndex(x =>
+                    x.SteamAppId == _activeGame.SteamAppId &&
+                    string.Equals(x.InstallDir, _activeGame.InstallDir, StringComparison.OrdinalIgnoreCase));
+                if (idx >= 0)
+                    selectIndex = idx;
+            }
+
+            GameCombo.SelectedIndex = selectIndex;
+            _activeGame = _allInstalls[selectIndex];
+        }
+        finally
+        {
+            _suppressGameCombo = false;
+        }
+
         _profilesIndex = SaProfileIndexService.LoadOrCreate(_activeGame);
 
         ProfileCombo.ItemsSource = _profilesIndex.ProfilesList;
-        var idx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
-        _profilesIndex.ProfileIndex = idx;
-        ProfileCombo.SelectedIndex = idx;
+        var pIdx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
+        _profilesIndex.ProfileIndex = pIdx;
+        ProfileCombo.SelectedIndex = pIdx;
 
         RebuildModListFromDiscoveryAndProfile();
-
-        GameInfoText.Text =
-            $"Game: {_activeGame.Game}\n" +
-            $"Install: {_activeGame.InstallDir}\n" +
-            $"Mods: {SaLoaderPaths.ModsRoot(_activeGame)}\n" +
-            $"Profiles: {SaLoaderPaths.ProfilesJson(_activeGame)}";
-
+        UpdateGameInfoBanner();
         UpdateStatus($"Loaded {_modItems.Count} mods.");
     }
 
