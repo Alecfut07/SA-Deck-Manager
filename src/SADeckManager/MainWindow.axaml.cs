@@ -288,4 +288,22 @@ public partial class MainWindow : Window
         if (sender is StyledElement { DataContext: ModItem m })
             ModsListBox.SelectedItem = m;
     }
+
+    private void OnModsListKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+            return;
+
+
+        if (e.Key == Key.Up)
+        {
+            OnMoveModUp(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Down)
+        {
+            OnMoveModDown(sender, e);
+            e.Handled = true;
+        }
+    }
 }
