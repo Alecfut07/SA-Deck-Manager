@@ -33,7 +33,8 @@
                                 x:Name="GameCombo"
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
-                                SelectionChanged="OnGameSelectionChanged">
+                                SelectionChanged="OnGameSelectionChanged"
+                                TabIndex="1">
                                 <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="local:GameListEntry">
                                                 <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
@@ -51,7 +52,8 @@
                         <ComboBox
                                 x:Name="ProfileCombo"
                                 VerticalAlignment="Center"
-                                SelectionChanged="OnProfileSelectionChanged">
+                                SelectionChanged="OnProfileSelectionChanged"
+                                TabIndex="2">
                                 <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="core:SaProfileEntry">
                                                 <TextBlock Text="{Binding Name}" />
@@ -62,17 +64,20 @@
                                 x:Name="RefreshButton"
                                 Grid.Column="1"
                                 Click="OnRefreshClick"
-                                Content="Refresh" />
+                                Content="Refresh"
+                                TabIndex="5" />
                         <Button
                                 x:Name="SaveProfileButton"
                                 Grid.Column="2"
                                 Click="OnSaveProfileClick"
-                                Content="Save Profile" />
+                                Content="Save Profile"
+                                TabIndex="6" />
                         <Button
                                 x:Name="LoadProfileButton"
                                 Grid.Column="3"
                                 Click="OnLoadProfileClick"
-                                Content="Load Profile" />
+                                Content="Load Profile"
+                                TabIndex="7" />
                 </Grid>
 
                 <Grid
@@ -114,19 +119,23 @@
                                                         Margin="8,0,0,0"
                                                         Padding="12,6"
                                                         Click="OnMoveModUp"
-                                                        Content="Move up" />
+                                                        Content="Move up"
+                                                        TabIndex="3" />
                                                 <Button
                                                         Grid.Column="2"
                                                         Margin="8,0,0,0"
                                                         Padding="12,6"
                                                         Click="OnMoveModDown"
-                                                        Content="Move down" />
+                                                        Content="Move down"
+                                                        TabIndex="4" />
                                         </Grid>
 
                                         <ListBox
                                                 x:Name="ModsListBox"
                                                 MinHeight="200"
-                                                SelectionMode="Single">
+                                                KeyDown="OnModsListKeyDown"
+                                                SelectionMode="Single"
+                                                TabIndex="10">
                                                 <ListBox.ItemTemplate>
                                                         <DataTemplate x:DataType="local:ModItem">
                                                                 <Grid ColumnDefinitions="14,*">
