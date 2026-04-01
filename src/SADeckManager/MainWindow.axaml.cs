@@ -17,6 +17,8 @@ public partial class MainWindow : Window
     private readonly List<GameInstall> _allInstalls = [];
     private bool _suppressGameCombo;
 
+    private bool _focusModsListOnNextRebuild;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -83,6 +85,7 @@ public partial class MainWindow : Window
         ProfileCombo.SelectedIndex = pIdx;
 
         RebuildModListFromDiscoveryAndProfile();
+        _focusModsListOnNextRebuild = true;
         UpdateGameInfoBanner();
         UpdateStatus($"Loaded {_modItems.Count} mods.");
     }
@@ -143,6 +146,12 @@ public partial class MainWindow : Window
 
         RefreshModsListUi();
         ModsListBox.SelectedIndex = _modItems.Count > 0 ? 0 : -1;
+
+        if (_focusModsListOnNextRebuild && _modItems.Count > 0)
+        {
+            _focusModsListOnNextRebuild = false;
+            ModsListBox.Focus();
+        }
     }
 
     private void PersistCurrentProfileToDisk()
@@ -209,6 +218,7 @@ public partial class MainWindow : Window
         ProfileCombo.SelectedIndex = pIdx;
 
         RebuildModListFromDiscoveryAndProfile();
+        _focusModsListOnNextRebuild = true;
         UpdateGameInfoBanner();
         UpdateStatus($"Game: {FormatGameLabel(_activeGame)}");
     }
