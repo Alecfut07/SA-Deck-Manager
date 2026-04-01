@@ -40,7 +40,7 @@ public partial class MainWindow : Window
             GameCombo.ItemsSource = null;
             ProfileCombo.ItemsSource = null;
             _modItems.Clear();
-            ModsItemsControl.ItemsSource = null;
+            ModsListBox.ItemsSource = null;
             GameInfoText.Text = "No installs found. Expected Steam root: ~/.local/share/Steam";
             StatusText.Text = string.Empty;
             return;
@@ -139,8 +139,8 @@ public partial class MainWindow : Window
             });
         }
 
-        ModsItemsControl.ItemsSource = null;
-        ModsItemsControl.ItemsSource = _modItems;
+        RefreshModsListUi();
+        ModsListBox.SelectedIndex = _modItems.Count > 0 ? 0 : -1;
     }
 
     private void PersistCurrentProfileToDisk()
@@ -245,5 +245,39 @@ public partial class MainWindow : Window
             $"Install: {_activeGame.InstallDir}\n" +
             $"Mods: {SaLoaderPaths.ModsRoot(_activeGame)}\n" +
             $"Profiles: {SaLoaderPaths.ProfilesJson(_activeGame)}";
+    }
+
+    private void RefreshModsListUi()
+    {
+        ModsListBox.ItemsSource = null;
+        ModsListBox.ItemsSource = _modItems;
+    }
+
+    private void OnMoveModUp(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var i = ModsListBox.SelectedIndex;
+        if (i <= 0 || _modItems.Count < 2)
+            return;
+
+        (_modItems[i - 1], _modItems[i]) = (_modItems[i], _modItems[i - 1]);
+
+        RefreshModsListUi();
+        ModsListBox.SelectedIndex = i - 1;
+        PersistCurrentProfileToDisk();
+        UpdateStatus("Load order: moved up");
+    }
+
+    private void OnMoveModDown(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var i = ModsListBox.SelectedIndex;
+        if (i < 0 || i >= _modItems.Count - 1)
+            return;
+
+        (_modItems[i + 1], _modItems[i]) = (_modItems[i], _modItems[i + 1]);
+
+        RefreshModsListUi();
+        ModsListBox.SelectedIndex = i + 1;
+        PersistCurrentProfileToDisk();
+        UpdateStatus("Load order: moved down");
     }
 }
