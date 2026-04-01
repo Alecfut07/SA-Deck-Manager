@@ -104,25 +104,41 @@
                                 BorderThickness="1"
                                 CornerRadius="8">
                                 <StackPanel>
-                                        <TextBlock
-                                                Margin="0,0,0,8"
-                                                FontWeight="SemiBold"
-                                                Text="Mods" />
-                                        <ScrollViewer>
-                                                <ItemsControl x:Name="ModsItemsControl">
-                                                        <ItemsControl.ItemTemplate>
-                                                                <DataTemplate x:DataType="local:ModItem">
-                                                                        <CheckBox
-                                                                                Margin="0,2,0,2"
-                                                                                Checked="OnModCheckedChanged"
-                                                                                Content="{Binding Label}"
-                                                                                IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                                                                Tag="{Binding RelPath}"
-                                                                                Unchecked="OnModCheckedChanged" />
-                                                                </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                        </ScrollViewer>
+                                        <Grid Margin="0,0,0,8" ColumnDefinitions="*,Auto,Auto">
+                                                <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        FontWeight="SemiBold"
+                                                        Text="Mods" />
+                                                <Button
+                                                        Grid.Column="1"
+                                                        Margin="8,0,0,0"
+                                                        Padding="12,6"
+                                                        Click="OnMoveModUp"
+                                                        Content="Move up" />
+                                                <Button
+                                                        Grid.Column="2"
+                                                        Margin="8,0,0,0"
+                                                        Padding="12,6"
+                                                        Click="OnMoveModDown"
+                                                        Content="Move down" />
+                                        </Grid>
+
+                                        <ListBox
+                                                x:Name="ModsListBox"
+                                                MinHeight="200"
+                                                SelectionMode="Single">
+                                                <ListBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="local:ModItem">
+                                                                <CheckBox
+                                                                        Margin="0,2,0,2"
+                                                                        Checked="OnModCheckedChanged"
+                                                                        Content="{Binding Label}"
+                                                                        IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                                        Tag="{Binding RelPath}"
+                                                                        Unchecked="OnModCheckedChanged" />
+                                                        </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                        </ListBox>
                                 </StackPanel>
                         </Border>
                 </Grid>
