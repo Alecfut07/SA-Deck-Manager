@@ -138,9 +138,10 @@
                                                 TabIndex="10">
                                                 <ListBox.ItemTemplate>
                                                         <DataTemplate x:DataType="local:ModItem">
-                                                                <Grid ColumnDefinitions="14,*">
+                                                                <Grid ColumnDefinitions="22,*">
                                                                         <Border
                                                                                 Grid.Column="0"
+                                                                                MinWidth="20"
                                                                                 Margin="0,1,6,1"
                                                                                 Background="#22000000"
                                                                                 CornerRadius="2"
