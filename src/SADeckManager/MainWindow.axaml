@@ -129,23 +129,25 @@
                                                 SelectionMode="Single">
                                                 <ListBox.ItemTemplate>
                                                         <DataTemplate x:DataType="local:ModItem">
-                                                                <Border
-                                                                        Grid.Column="0"
-                                                                        Margin="0,1,6,1"
-                                                                        Background="#22000000"
-                                                                        CornerRadius="2"
-                                                                        Cursor="Hand"
-                                                                        PointerReleased="OnModSelectStripPointerReleased"
-                                                                        ToolTip.Tip="Select row (load order)" />
-                                                                <CheckBox
-                                                                        Grid.Column="1"
-                                                                        Margin="0,2,0,2"
-                                                                        VerticalAlignment="Center"
-                                                                        Checked="OnModCheckedChanged"
-                                                                        Content="{Binding Label}"
-                                                                        IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                                                        Tag="{Binding RelPath}"
-                                                                        Unchecked="OnModCheckedChanged" />
+                                                                <Grid ColumnDefinitions="14,*">
+                                                                        <Border
+                                                                                Grid.Column="0"
+                                                                                Margin="0,1,6,1"
+                                                                                Background="#22000000"
+                                                                                CornerRadius="2"
+                                                                                Cursor="Hand"
+                                                                                PointerReleased="OnModSelectStripPointerReleased"
+                                                                                ToolTip.Tip="Select row (load order)" />
+                                                                        <CheckBox
+                                                                                Grid.Column="1"
+                                                                                Margin="0,2,0,2"
+                                                                                VerticalAlignment="Center"
+                                                                                Checked="OnModCheckedChanged"
+                                                                                Content="{Binding Label}"
+                                                                                IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                                                                Tag="{Binding RelPath}"
+                                                                                Unchecked="OnModCheckedChanged" />
+                                                                </Grid>
                                                         </DataTemplate>
                                                 </ListBox.ItemTemplate>
                                         </ListBox>
