@@ -1,4 +1,6 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using SADeckManager.Core;
 using System;
 using System.Collections.Generic;
@@ -279,5 +281,11 @@ public partial class MainWindow : Window
         ModsListBox.SelectedIndex = i + 1;
         PersistCurrentProfileToDisk();
         UpdateStatus("Load order: moved down");
+    }
+
+    private void OnModSelectStripPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is StyledElement { DataContext: ModItem m })
+            ModsListBox.SelectedItem = m;
     }
 }
