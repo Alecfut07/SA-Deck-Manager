@@ -62,4 +62,21 @@ public static class SaGameSettingsModListPatcher
 
         return arr.Select(n => n?.GetValue<string>() ?? "").Where(s => s.Length > 0).ToList();
     }
+
+    public static IReadOnlyList<string> ReadEnabledCodes(GameInstall game, string profileFilename)
+    {
+        var path = Path.Combine(SaLoaderPaths.ProfilesDirectory(game), profileFilename);
+        if (!File.Exists(path))
+            return Array.Empty<string>();
+
+        var root = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        var arr = root["EnabledCodes"] as JsonArray;
+        if (arr is null)
+            return Array.Empty<string>();
+
+        return arr
+            .Select(n => n?.GetValue<string>() ?? "")
+            .Where(s => s.Length > 0)
+            .ToList();
+    }
 }
