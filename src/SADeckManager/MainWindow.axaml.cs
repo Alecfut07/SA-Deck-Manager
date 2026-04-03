@@ -86,6 +86,7 @@ public partial class MainWindow : Window
         RebuildModListFromDiscoveryAndProfile();
         _focusModsListOnNextRebuild = true;
         UpdateGameInfoBanner();
+        UpdateLoaderMessage();
         UpdateStatus($"Loaded {_modItems.Count} mods.");
     }
 
@@ -222,6 +223,7 @@ public partial class MainWindow : Window
         RebuildModListFromDiscoveryAndProfile();
         _focusModsListOnNextRebuild = true;
         UpdateGameInfoBanner();
+        UpdateLoaderMessage();
         UpdateStatus($"Game: {FormatGameLabel(_activeGame)}");
     }
 
@@ -416,6 +418,13 @@ public partial class MainWindow : Window
             return;
         }
 
+        var loader = SaLoaderDetection.Inspect(_activeGame);
+        if (loader.Health != SaLoaderHealth.Ok)
+        {
+            UpdateStatus(loader.Message + " Launch may not load mods.");
+            // Optional: return; // uncomment to block launch until loader is fixed
+        }
+
         PersistCurrentProfileToDisk();
 
         var appId = _activeGame.SteamAppId.Trim();
@@ -491,5 +500,17 @@ public partial class MainWindow : Window
             ArgumentList = { steamUrl },
             UseShellExecute = false
         });
+    }
+
+    private void UpdateLoaderMessage()
+    {
+        if (_activeGame is null)
+        {
+            LoaderStatusText.Text = string.Empty;
+            return;
+        }
+
+        var status = SaLoaderDetection.Inspect(_activeGame);
+        LoaderStatusText.Text = status.Message;
     }
 }
