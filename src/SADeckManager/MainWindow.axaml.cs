@@ -402,23 +402,34 @@ public partial class MainWindow : Window
         UpdateStatus($"Renamed profile to: {name}");
     }
 
-    private void OnDeleteProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnDeleteProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (_activeGame is null || _profilesIndex is null || ProfileCombo.SelectedIndex < 0)
+        {
+            await AppDialogs.ShowErrorAsync(this, "No game or profile selected.");
+            return;
+        }
+
+        if (!await AppDialogs.ShowYesNoAsync(this, "Delete profile",
+                "Delete this profile? The profile file will be removed from disk."))
             return;
 
         if (!SaProfileLifecycle.TryDeleteProfile(_activeGame, _profilesIndex, ProfileCombo.SelectedIndex, out var err))
         {
-            UpdateStatus(err ?? "Cannot delete profile.");
+            await AppDialogs.ShowErrorAsync(this, err ?? "Cannot delete profile.");
             return;
         }
 
         RefreshProfileComboSelection();
         RebuildModListFromDiscoveryAndProfile();
-        UpdateStatus(string.IsNullOrEmpty(err) ? "Profile deleted." : err);
+
+        if (string.IsNullOrEmpty(err))
+            UpdateStatus("Profile deleted.");
+        else
+            await AppDialogs.ShowErrorAsync(this, err ?? "Profile removed");
     }
 
-    private void OnLaunchGameClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnLaunchGameClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (_activeGame is null)
         {
@@ -454,7 +465,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            UpdateStatus($"Launch failed: {ex.Message}");
+            await AppDialogs.ShowErrorAsync(this, $"Launch failed:\n{ex.Message}");
         }
     }
 
