@@ -4,33 +4,6 @@ namespace SADeckManager.Core;
 
 public static class SaGameSettingsModListPatcher
 {
-    /// <summary>
-    /// Updates EnabledMods and ModsList. Creates a minimal new file only if missing (SA Mod Manager may still expect more fields - prefer opening the game once in SA-MM first).
-    /// </summary>
-    public static void WriteModLists(GameInstall game, string profileFilename, IReadOnlyList<string> modsListOrder, IReadOnlyList<string> enabledModsInOrder)
-    {
-        var dir = SaLoaderPaths.ProfilesDirectory(game);
-        Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, profileFilename);
-
-        JsonObject root;
-        if (File.Exists(path))
-            root = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
-        else
-            root = new JsonObject
-            {
-                ["GamePath"] = game.InstallDir.Replace('\\', '/'),
-                ["EnabledMods"] = new JsonArray(),
-                ["EnabledCodes"] = new JsonArray(),
-                ["ModsList"] = new JsonArray()
-            };
-
-        root["EnabledMods"] = ToArray(enabledModsInOrder);
-        root["ModsList"] = ToArray(modsListOrder);
-
-        File.WriteAllText(path, root.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-    }
-
     private static JsonArray ToArray(IReadOnlyList<string> items)
     {
         var a = new JsonArray();
@@ -118,5 +91,16 @@ public static class SaGameSettingsModListPatcher
         root["EnabledCodes"] = ToArray(enabledCodesInOrder);
 
         File.WriteAllText(path, root.ToJsonString(JsonWriteIndented));
+    }
+
+    public static void WriteModLists(
+        GameInstall game,
+        string profileFilename,
+        IReadOnlyList<string> modsListOrder,
+        IReadOnlyList<string> enabledModsInOrder
+    )
+    {
+        var codes = ReadEnabledCodes(game, profileFilename);
+        WriteProfileLists(game, profileFilename, modsListOrder, enabledModsInOrder, codes);
     }
 }
