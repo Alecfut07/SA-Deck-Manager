@@ -84,4 +84,39 @@ public static class SaGameSettingsModListPatcher
     {
         WriteIndented = true
     };
+
+    /// <summary>
+    /// Writes <c>ModsList</c>, <c>EnabledMods</c>, <c>EnabledCodes</c> and refreshes <c>GamePath</c>.
+    /// Other top-level / nested JSON (Graphics, Patches, etc.) is left unchanged when the file already exists.
+    /// </summary>
+    public static void WriteProfileLists(
+        GameInstall game,
+        string profileFilename,
+        IReadOnlyList<string> modsListOrder,
+        IReadOnlyList<string> enabledModsInOrder,
+        IReadOnlyList<string> enabledCodesInOrder
+    )
+    {
+        var dir = SaLoaderPaths.ProfilesDirectory(game);
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, profileFilename);
+
+        JsonObject root;
+        if (File.Exists(path))
+            root = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        else
+            root = new JsonObject
+            {
+                ["EnabledMods"] = new JsonArray(),
+                ["EnabledCodes"] = new JsonArray(),
+                ["ModsList"] = new JsonArray()
+            };
+
+        root["GamePath"] = JsonValue.Create(game.InstallDir.Replace('\\', '/'));
+        root["EnabledMods"] = ToArray(enabledModsInOrder);
+        root["ModsList"] = ToArray(modsListOrder);
+        root["EnabledCodes"] = ToArray(enabledCodesInOrder);
+
+        File.WriteAllText(path, root.ToJsonString(JsonWriteIndented));
+    }
 }
