@@ -15,7 +15,7 @@
         input:XYFocus.NavigationModes="Enabled"
         mc:Ignorable="d">
 
-        <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,*">
+        <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*">
                 <TextBlock
                         Grid.Row="0"
                         FontSize="20"
@@ -84,6 +84,29 @@
 
                 <Grid
                         Grid.Row="3"
+                        Margin="0,0,0,8"
+                        ColumnDefinitions="*,Auto,Auto,Auto"
+                        ColumnSpacing="8">
+                        <TextBox
+                                x:Name="ProfileNameInput"
+                                VerticalAlignment="Center"
+                                Watermark="New profile name (add / rename)" />
+                        <Button
+                                Grid.Column="1"
+                                Click="OnAddProfileClick"
+                                Content="Add profile" />
+                        <Button
+                                Grid.Column="2"
+                                Click="OnRenameProfileClick"
+                                Content="Rename" />
+                        <Button
+                                Grid.Column="3"
+                                Click="OnDeleteProfileClick"
+                                Content="Delete" />
+                </Grid>
+
+                <Grid
+                        Grid.Row="4"
                         ColumnDefinitions="2*,3*"
                         ColumnSpacing="12">
                         <Border
