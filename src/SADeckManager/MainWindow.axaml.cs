@@ -427,11 +427,14 @@ public partial class MainWindow : Window
         }
 
         var loader = SaLoaderDetection.Inspect(_activeGame);
-        if (loader.Health != SaLoaderHealth.Ok)
+        if (loader.Health == SaLoaderHealth.ModLoaderFolderMissing || loader.Health == SaLoaderHealth.LoaderDllMissing)
         {
-            UpdateStatus(loader.Message + " Launch may not load mods.");
-            // Optional: return; // uncomment to block launch until loader is fixed
+            UpdateStatus(loader.Message);
+            return;
         }
+
+        if (loader.Health == SaLoaderHealth.LoaderIniMissing)
+            UpdateStatus(loader.Message + " Launching anyway.");
 
         PersistCurrentProfileToDisk();
 
