@@ -16,8 +16,8 @@ public partial class MainWindow : Window
     private readonly List<ModItem> _modItems = [];
     private readonly List<GameInstall> _allInstalls = [];
     private bool _suppressGameCombo;
-
     private bool _focusModsListOnNextRebuild;
+    private bool _suppressProfileCombo;
 
     public MainWindow()
     {
@@ -79,10 +79,7 @@ public partial class MainWindow : Window
 
         _profilesIndex = SaProfileIndexService.LoadOrCreate(_activeGame);
 
-        ProfileCombo.ItemsSource = _profilesIndex.ProfilesList;
-        var pIdx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
-        _profilesIndex.ProfileIndex = pIdx;
-        ProfileCombo.SelectedIndex = pIdx;
+        RefreshProfileComboSelection();
 
         RebuildModListFromDiscoveryAndProfile();
         _focusModsListOnNextRebuild = true;
@@ -169,6 +166,9 @@ public partial class MainWindow : Window
 
     private void OnProfileSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_suppressProfileCombo)
+            return;
+
         if (_activeGame is null || _profilesIndex is null || ProfileCombo.SelectedIndex < 0) return;
 
         _profilesIndex.ProfileIndex = ProfileCombo.SelectedIndex;
@@ -314,6 +314,26 @@ public partial class MainWindow : Window
         {
             OnMoveModDown(sender, e);
             e.Handled = true;
+        }
+    }
+
+    private void RefreshProfileComboSelection()
+    {
+        if (_activeGame is null || _profilesIndex is null)
+            return;
+
+        _suppressProfileCombo = true;
+        try
+        {
+            ProfileCombo.ItemsSource = null;
+            ProfileCombo.ItemsSource = _profilesIndex.ProfilesList;
+            var pIdx = Math.Clamp(_profilesIndex.ProfileIndex, 0, Math.Max(0, _profilesIndex.ProfilesList.Count - 1));
+            _profilesIndex.ProfileIndex = pIdx;
+            ProfileCombo.SelectedIndex = pIdx;
+        }
+        finally
+        {
+            _suppressProfileCombo = false;
         }
     }
 }
