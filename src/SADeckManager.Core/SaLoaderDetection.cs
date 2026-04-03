@@ -4,7 +4,8 @@ public enum SaLoaderHealth
 {
     Ok,
     ModLoaderFolderMissing,
-    LoaderDllMissing
+    LoaderDllMissing,
+    LoaderIniMissing
 }
 
 public sealed record SaLoaderStatus(SaLoaderHealth Health, string Message);
@@ -16,7 +17,7 @@ public static class SaLoaderDetection
         {
             GameId.SonicAdventureDX => "SADXModLoader",
             GameId.SonicAdventure2 => "SA2ModLoader",
-            _ => "Unkown"
+            _ => "Unknown"
         };
 
     /// <summary>
@@ -54,9 +55,26 @@ public static class SaLoaderDetection
             );
         }
 
+        var iniPath = Path.Combine(SaLoaderPaths.ModsRoot(game), $"{baseName}.ini");
+
+        if (!File.Exists(iniPath))
+        {
+            return new SaLoaderStatus(
+                SaLoaderHealth.LoaderIniMissing,
+                $"Loader DLL found, but loader INI missing:\n{iniPath}\n" +
+                "Create it or copy from another install."
+            );
+        }
+
         return new SaLoaderStatus(
             SaLoaderHealth.Ok,
-            $"Loader OK: {dllPath}"
+            $"Loader OK.\nDLL: {dllPath}\nINI: {iniPath}"
         );
+    }
+
+    public static string GetLoaderIniPath(GameInstall game)
+    {
+        var baseName = GetLoaderBaseName(game);
+        return Path.Combine(SaLoaderPaths.ModsRoot(game), $"{baseName}.ini");
     }
 }
