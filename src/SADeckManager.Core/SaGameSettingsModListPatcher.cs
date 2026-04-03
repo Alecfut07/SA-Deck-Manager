@@ -79,4 +79,9 @@ public static class SaGameSettingsModListPatcher
             .Where(s => s.Length > 0)
             .ToList();
     }
+
+    private static readonly System.Text.Json.JsonSerializerOptions JsonWriteIndented = new()
+    {
+        WriteIndented = true
+    };
 }
