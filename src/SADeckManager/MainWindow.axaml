@@ -69,6 +69,11 @@
                                 Content="Refresh"
                                 TabIndex="5" />
                         <Button
+                                x:Name="LaunchGameButton"
+                                Click="OnLaunchGameClick"
+                                Content="Launch Game"
+                                TabIndex="8" />
+                        <Button
                                 x:Name="SaveProfileButton"
                                 Grid.Column="2"
                                 Click="OnSaveProfileClick"
