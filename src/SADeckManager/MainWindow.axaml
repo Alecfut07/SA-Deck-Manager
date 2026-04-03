@@ -129,6 +129,11 @@
                                                 FontSize="12"
                                                 Opacity="0.8"
                                                 TextWrapping="Wrap" />
+                                        <TextBlock
+                                                x:Name="LoaderStatusText"
+                                                FontFamily="Monospace"
+                                                FontSize="12"
+                                                TextWrapping="Wrap" />
                                 </StackPanel>
                         </Border>
 
