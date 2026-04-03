@@ -407,4 +407,71 @@ public partial class MainWindow : Window
         RebuildModListFromDiscoveryAndProfile();
         UpdateStatus(string.IsNullOrEmpty(err) ? "Profile deleted." : err);
     }
+
+    private void OnLaunchGameClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_activeGame is null)
+        {
+            UpdateStatus("No game selected.");
+            return;
+        }
+
+        PersistCurrentProfileToDisk();
+
+        var appId = _activeGame.SteamAppId.Trim();
+        if (string.IsNullOrEmpty(appId))
+        {
+            UpdateStatus("Missing Steam AppId.");
+            return;
+        }
+
+        var url = $"steam://run/{appId}";
+
+        try
+        {
+            TryOpenSteamUrl(url);
+            UpdateStatus($"Launched: {url}");
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Launch failed: {ex.Message}");
+        }
+    }
+
+    private static void TryOpenSteamUrl(string steamUrl)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = steamUrl,
+                UseShellExecute = true
+            });
+            return;
+        }
+
+        // Linux / macOS: try `steam` first (works for many native Steam installs)
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "steam",
+                Arguments = steamUrl,
+                UseShellExecute = false
+            });
+            return;
+        }
+        catch
+        {
+            // ignored; fall through
+        }
+
+        // Fallback: hand off to the OS (Flatpak / unusual setups)
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "xdg-open",
+            ArgumentList = { steamUrl },
+            UseShellExecute = false
+        });
+    }
 }
