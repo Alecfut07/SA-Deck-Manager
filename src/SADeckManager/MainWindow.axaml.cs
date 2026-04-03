@@ -466,6 +466,24 @@ public partial class MainWindow : Window
             // ignored; fall through
         }
 
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "flatpak",
+                    Arguments = $"run com.valvesoftware.Steam {steamUrl}",
+                    UseShellExecute = false
+                });
+                return;
+            }
+            catch
+            {
+                // fall through to xdg-open
+            }
+        }
+
         // Fallback: hand off to the OS (Flatpak / unusual setups)
         Process.Start(new ProcessStartInfo
         {
