@@ -336,4 +336,73 @@ public partial class MainWindow : Window
             _suppressProfileCombo = false;
         }
     }
+
+    private void OnAddProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_activeGame is null || _profilesIndex is null)
+            return;
+
+        var name = ProfileNameInput.Text?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            UpdateStatus("Enter a profile name first.");
+            return;
+        }
+
+        try
+        {
+            SaProfileLifecycle.AddProfile(_activeGame, _profilesIndex, name, copyFromCurrent: true);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Add profile failed: {ex.Message}");
+            return;
+        }
+
+        RefreshProfileComboSelection();
+        RebuildModListFromDiscoveryAndProfile();
+        UpdateStatus($"Added profile: {name}");
+    }
+
+    private void OnRenameProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_activeGame is null || _profilesIndex is null || ProfileCombo.SelectedIndex < 0)
+            return;
+
+        var name = ProfileNameInput.Text?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            UpdateStatus("Enter the new display name.");
+            return;
+        }
+
+        try
+        {
+            SaProfileLifecycle.RenameProfileDisplay(_activeGame, _profilesIndex, ProfileCombo.SelectedIndex, name);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Rename failed: {ex.Message}");
+            return;
+        }
+
+        RefreshProfileComboSelection();
+        UpdateStatus($"Renamed profile to: {name}");
+    }
+
+    private void OnDeleteProfileClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_activeGame is null || _profilesIndex is null || ProfileCombo.SelectedIndex < 0)
+            return;
+
+        if (!SaProfileLifecycle.TryDeleteProfile(_activeGame, _profilesIndex, ProfileCombo.SelectedIndex, out var err))
+        {
+            UpdateStatus(err ?? "Cannot delete profile.");
+            return;
+        }
+
+        RefreshProfileComboSelection();
+        RebuildModListFromDiscoveryAndProfile();
+        UpdateStatus(string.IsNullOrEmpty(err) ? "Profile deleted." : err);
+    }
 }
