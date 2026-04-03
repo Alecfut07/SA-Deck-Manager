@@ -162,9 +162,17 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(fn)) return;
 
         var order = _modItems.Select(m => m.RelPath).ToList();
-        var enabledInUiOrder = _modItems.Where(m => m.IsEnabled).Select(m => m.RelPath).ToList();
+        var enabledMods = _modItems.Where(m => m.IsEnabled).Select(m => m.RelPath).ToList();
 
-        SaGameSettingsModListPatcher.WriteModLists(_activeGame, fn, order, enabledInUiOrder);
+        // Until you have a codes UI, re-read from disk so codes stay intact:
+        var enabledCodes = SaGameSettingsModListPatcher.ReadEnabledCodes(_activeGame, fn);
+
+        SaGameSettingsModListPatcher.WriteProfileLists(
+            _activeGame,
+            fn,
+            order,
+            enabledMods,
+            enabledCodes);
     }
 
     private void OnProfileSelectionChanged(object? sender, SelectionChangedEventArgs e)
