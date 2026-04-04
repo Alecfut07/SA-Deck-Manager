@@ -22,6 +22,9 @@ modules:
   - name: sa-deck-manager
     buildsystem: simple
     build-options:
+      # Required for dotnet restore / NuGet during flatpak-builder (finish-args do not apply to builds).
+      build-args:
+        - --share=network
       append-path: /usr/lib/sdk/dotnet9/lib
       append-ld-library-path: /usr/lib/sdk/dotnet9/lib
       env:
