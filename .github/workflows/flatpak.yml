@@ -1,0 +1,84 @@
+# Repeatable Flatpak builds on Linux (no local Flatpak needed on macOS).
+# Artifacts: .flatpak bundle + regenerated flatpak/nuget-sources.json
+
+name: Flatpak
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flatpak-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Add Flathub
+        run: |
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install Platform, Sdk, and .NET 9 extension
+        run: |
+          flatpak install -y --user flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08 \
+            org.freedesktop.Sdk.Extension.dotnet9//24.08
+
+      - name: Regenerate NuGet Flatpak sources
+        run: |
+          python3 ./flatpak-dotnet-generator.py \
+            flatpak/nuget-sources.json \
+            src/SADeckManager/SADeckManager.csproj \
+            --runtime linux-x64 \
+            --freedesktop 24.08 \
+            --dotnet 9 \
+            --destdir flatpak/nuget-sources
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user \
+            --install-deps-from=flathub \
+            --disable-rofiles-fuse \
+            --force-clean \
+            --default-branch=test \
+            --repo=repo \
+            build-dir \
+            flatpak/io.github.alecfut07.sa-deck-manager.yml
+
+      - name: Create single-file bundle
+        run: |
+          flatpak build-bundle repo \
+            io.github.alecfut07.sa-deck-manager.flatpak \
+            io.github.alecfut07.sa-deck-manager \
+            test
+
+      - name: Upload Flatpak bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: sa-deck-manager-flatpak
+          path: io.github.alecfut07.sa-deck-manager.flatpak
+          if-no-files-found: error
+
+      - name: Upload NuGet sources manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-sources-json
+          path: flatpak/nuget-sources.json
+          if-no-files-found: error

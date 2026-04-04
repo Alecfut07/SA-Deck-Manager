@@ -8,6 +8,7 @@ import binascii
 import concurrent.futures
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -59,8 +60,10 @@ def main() -> None:
     sources = []
     with tempfile.TemporaryDirectory(dir=Path()) as tmp:
 
-        def restore_project(project: str, runtime: str | None) -> None:
-            subprocess.run(
+        def restore_project(
+            project: str, runtime: str | None
+        ) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
                 [
                     "flatpak",
                     "run",
@@ -80,7 +83,8 @@ def main() -> None:
                 ]
                 + (["-r", runtime] if runtime else [])
                 + (args.dotnet_args or []),
-                check=False,
+                capture_output=True,
+                text=True,
             )
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -94,6 +98,17 @@ def main() -> None:
                 else:
                     futures.append(executor.submit(restore_project, project, None))
             concurrent.futures.wait(futures)
+            for f in futures:
+                proc = f.result()
+                if proc.returncode != 0:
+                    sys.stderr.write(
+                        "flatpak/dotnet restore failed (exit %d).\n" % proc.returncode
+                    )
+                    if proc.stdout:
+                        sys.stderr.write(proc.stdout)
+                    if proc.stderr:
+                        sys.stderr.write(proc.stderr)
+                    sys.exit(1)
 
         for path in Path(tmp).glob("**/*.nupkg.sha512"):
             name = path.parent.parent.name
@@ -118,6 +133,19 @@ def main() -> None:
                 data["only-arches"] = [args.only_arches]
 
             sources.append(data)
+
+        if not sources:
+            sys.stderr.write(
+                "No .nupkg.sha512 files under the restore directory — "
+                "nuget-sources.json would be empty. "
+                "Usually this means flatpak is missing, the Sdk/dotnet extension "
+                "is not installed for this freedesktop version, or restore did not run.\n"
+                "Install: flatpak install org.freedesktop.Sdk//%s "
+                "org.freedesktop.Sdk.Extension.dotnet%s//%s\n"
+                % (args.freedesktop, args.dotnet, args.freedesktop)
+                + "Run this script from the repo root on Linux (or wherever flatpak run works).\n"
+            )
+            sys.exit(1)
 
     with open(args.output, "w", encoding="utf-8") as fp:
         json.dump(sorted(sources, key=lambda n: n.get("dest-filename")), fp, indent=4)
