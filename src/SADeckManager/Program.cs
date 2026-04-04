@@ -1,16 +1,35 @@
-﻿using Avalonia;
-using System;
+﻿using System;
+using System.Threading;
+using Avalonia;
 
 namespace SADeckManager;
 
 class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
+    /// <summary>
+    ///  Unique per app; do not reuse for another Mod Manager mutex names.
+    /// </summary>
+    private const string SingleInstanceMutexName = "Local\\SADeckManager_SingleInstance_v1";
+
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+        using var mutex = new Mutex(true, SingleInstanceMutexName, out var createdNew);
+        if (!createdNew)
+        {
+            SingleInstanceIpc.TrySignalPrimaryToFocus();
+            return;
+        }
+
+        try
+        {
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        finally
+        {
+            try { mutex.ReleaseMutex(); } catch { /* ignore */ }
+        }
+    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
