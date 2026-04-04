@@ -1,0 +1,46 @@
+app-id: io.github.alecfut07.sa-deck-manager
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.dotnet9
+
+command: SADeckmanager
+
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=home
+  - --filesystem=xdg-data/Steam
+  - --filesystem=/run/media
+  - --env=DOTNET_ROOT=/usr/lib/sdk/dotnet9
+
+modules:
+  - name: sa-deck-manager
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/dotnet9/lib
+      append-ld-library-path: /usr/lib/sdk/dotnet9/lib
+      env:
+        PKG_CONFIG_PATH: /app/lib/pkgconfig:/app/share/pkgconfig
+        DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+        # If offline NuGet use for Flathub, set:
+        # DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+    build-commands:
+      - |
+        dotnet publish src/SADeckManager/SADeckManager.csproj \
+          -c Release \
+          -r linux-x64 \
+          --self-contained false \
+          -o publish
+      - install -d "${FLATPAK_DEST}/bin"
+      - cp -r publish/* "${FLATPAK_DEST}/bin/"
+      - install -Dm644 flatpak/io.github.alecfut07.sa-deck-manager.desktop -t "${FLATPAK_DEST}/share/applications"
+      - install -Dm644 flatpak/io.github.alecfut07.sa-deck-manager.metainfo.xml -t "${FLATPAK_DEST}/share/metainfo"
+      - install -Dm644 flatpak/io.github.alecfut07.sa-deck-manager.png "${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png"
+    sources:
+      - type: dir
+        path: ..
