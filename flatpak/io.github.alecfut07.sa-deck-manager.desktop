@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SA Deck Manager
+Comment=Mod manager for Sonic Adventure 1 & 2 (Steam / Linux)
+Exec=SADeckManager
+Icon=io.github.alecfut07.sa-deck-manager
+Terminal=false
+Type=Application
+Categories=Game;Utility;
