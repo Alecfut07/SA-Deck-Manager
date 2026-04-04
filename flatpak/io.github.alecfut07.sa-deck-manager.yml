@@ -5,7 +5,7 @@ sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.dotnet9
 
-command: SADeckmanager
+command: SADeckManager
 
 finish-args:
   - --share=ipc
