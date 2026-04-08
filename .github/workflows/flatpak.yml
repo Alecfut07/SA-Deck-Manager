@@ -5,7 +5,12 @@ name: Flatpak
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - main
+      - dev
+      - "feature/**"
+    tags:
+      - "v*.*.*"
   pull_request:
   workflow_dispatch:
 
