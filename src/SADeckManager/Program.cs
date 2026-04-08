@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
+using Serilog;
 
 namespace SADeckManager;
 
@@ -21,14 +24,68 @@ class Program
             return;
         }
 
+        ConfigureSerilog();
+        RegisterGlobalExceptionHandlers();
+
         try
         {
+            Log.Information("Starting SA Deck Manager");
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Fatal error during startup or runtime");
+            throw;
         }
         finally
         {
+            Log.CloseAndFlush();
             try { mutex.ReleaseMutex(); } catch { /* ignore */ }
         }
+    }
+
+    private static void ConfigureSerilog()
+    {
+        var logsDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "SA-Deck-Manager",
+            "logs"
+        );
+
+        Directory.CreateDirectory(logsDir);
+
+        var logFile = Path.Combine(logsDir, "app-.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(
+                logFile,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 14,
+                shared: true
+            )
+            .CreateLogger();
+    }
+
+    private static void RegisterGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            try
+            {
+                Log.Fatal(e.ExceptionObject as Exception, "Unhandled exception");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            Log.Error(e.Exception, "Unobserved task exception");
+            e.SetObserved();
+        };
     }
 
     public static AppBuilder BuildAvaloniaApp()
