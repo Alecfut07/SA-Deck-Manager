@@ -46,15 +46,18 @@ class Program
 
     private static void ConfigureSerilog()
     {
-        var logsDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "SA-Deck-Manager",
-            "logs"
-        );
+        var home = Environment.GetEnvironmentVariable("HOME")
+                   ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
+        var logsDir = Path.Combine(home, "Documents", "SA-Deck-Manager", "logs");
         Directory.CreateDirectory(logsDir);
 
         var logFile = Path.Combine(logsDir, "app-.log");
+
+        // Debug: visible when you run `flatpak run io.github.alecfut07.sa-deck-manager`
+        Console.Error.WriteLine($"[SA-Deck-Manager] LOG DIR = {logsDir}");
+        Console.Error.WriteLine($"[SA-Deck-Manager] LOG FILE = {logFile}");
+        Console.Error.WriteLine($"[SA-Deck-Manager] HOME = {home}");
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -62,9 +65,16 @@ class Program
                 logFile,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14,
-                shared: true
+                shared: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(1)
             )
             .CreateLogger();
+
+        Log.Information("Serilog initialized; log file should be created under LOG DIR.");
+
+        // Optional one-time smoke test: proves the file appears even if the app crashes.
+        // immediately after Avalonia starts. Comment out after you confirm logging works.
+        // Log.CloseAndFlush();
     }
 
     private static void RegisterGlobalExceptionHandlers()

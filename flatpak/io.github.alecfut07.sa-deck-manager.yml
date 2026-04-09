@@ -15,6 +15,7 @@ finish-args:
   - --device=dri
   - --filesystem=home
   - --filesystem=xdg-data/Steam
+  - --filesystem=xdg-documents
   - --filesystem=/run/media
   - --env=DOTNET_ROOT=/usr/lib/sdk/dotnet9
 
