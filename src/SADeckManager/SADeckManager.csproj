@@ -23,6 +23,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\ThirdParty\SAModManager\Resources\SADXModLoader.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>ThirdParty\SAModManager\Resources\SADXModLoader.zip</Link>
+    </Content>
+    <Content Include="..\ThirdParty\SAModManager\Resources\SA2ModLoader.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>ThirdParty\SAModManager\Resources\SA2ModLoader.zip</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SADeckManager.Core\SADeckManager.Core.csproj" />
   </ItemGroup>
 </Project>
