@@ -17,7 +17,6 @@ finish-args:
   - --filesystem=xdg-data/Steam
   - --filesystem=xdg-documents
   - --filesystem=/run/media
-  - --env=DOTNET_ROOT=/usr/lib/sdk/dotnet9
 
 modules:
   - name: sa-deck-manager
@@ -38,7 +37,7 @@ modules:
         dotnet publish src/SADeckManager/SADeckManager.csproj \
           -c Release \
           -r linux-x64 \
-          --self-contained false \
+          --self-contained true \
           -o publish
       - install -d "${FLATPAK_DEST}/bin"
       - cp -r publish/* "${FLATPAK_DEST}/bin/"
