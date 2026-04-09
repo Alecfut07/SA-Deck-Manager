@@ -49,7 +49,7 @@
                 <Grid
                         Grid.Row="2"
                         Margin="0,12,0,12"
-                        ColumnDefinitions="*,Auto,Auto,Auto"
+                        ColumnDefinitions="*,Auto,Auto,Auto,Auto"
                         ColumnSpacing="8">
                         <ComboBox
                                 x:Name="ProfileCombo"
@@ -70,18 +70,19 @@
                                 TabIndex="5" />
                         <Button
                                 x:Name="LaunchGameButton"
+                                Grid.Column="2"
                                 Click="OnLaunchGameClick"
                                 Content="Launch Game"
                                 TabIndex="8" />
                         <Button
                                 x:Name="SaveProfileButton"
-                                Grid.Column="2"
+                                Grid.Column="3"
                                 Click="OnSaveProfileClick"
                                 Content="Save Profile"
                                 TabIndex="6" />
                         <Button
                                 x:Name="LoadProfileButton"
-                                Grid.Column="3"
+                                Grid.Column="4"
                                 Click="OnLoadProfileClick"
                                 Content="Load Profile"
                                 TabIndex="7" />
