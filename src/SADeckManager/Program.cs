@@ -54,11 +54,6 @@ class Program
 
         var logFile = Path.Combine(logsDir, "app-.log");
 
-        // Debug: visible when you run `flatpak run io.github.alecfut07.sa-deck-manager`
-        Console.Error.WriteLine($"[SA-Deck-Manager] LOG DIR = {logsDir}");
-        Console.Error.WriteLine($"[SA-Deck-Manager] LOG FILE = {logFile}");
-        Console.Error.WriteLine($"[SA-Deck-Manager] HOME = {home}");
-
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.File(
