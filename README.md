@@ -24,14 +24,12 @@ Currently:
 - **HedgeModManager** supports multiple Sonic games and works on Linux/Steam Deck via Flatpak
 - **SA-Mod-Manager** supports Sonic Adventure DX and Sonic Adventure 2, but is **Windows-only**
 
-This project combines the strengths of both:
+This project is inspired by the strengths of both:
 
 | Project         | Used For                                            |
 | --------------- | --------------------------------------------------- |
 | HedgeModManager | Linux compatibility, Flatpak structure, UI concepts |
 | SA-Mod-Manager  | Game-specific mod loading logic                     |
-
-> ⚠️ Note: No code from these projects is modified or reused directly. They are used strictly as references.
 
 ---
 
@@ -95,12 +93,15 @@ Planned permissions:
 
 ---
 
-## 📁 Reference Projects
+## 📁 Third-Party Components
 
-These are **NOT dependencies**—only used for study:
+This project includes or depends on the following third-party components:
 
 - HedgeModManager
 - SA-Mod-Manager
+
+All third-party software is used in compliance with their respective.
+See `THIRD_PARTY_NOTICES.md` for details.
 
 ---
 
