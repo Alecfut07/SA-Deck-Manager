@@ -60,9 +60,9 @@ public static class SaLoaderDetection
         if (!File.Exists(iniPath))
         {
             return new SaLoaderStatus(
-                SaLoaderHealth.LoaderIniMissing,
-                $"Loader DLL found, but loader INI missing:\n{iniPath}\n" +
-                "Create it or copy from another install."
+                SaLoaderHealth.Ok,
+                $"Loader OK.\nDLL: {dllPath}\n" +
+                $"INI not present yet (normal on a fresh install; it may appear after you run the game with the loader):\n{iniPath}"
             );
         }
 
