@@ -447,9 +447,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (loader.Health == SaLoaderHealth.LoaderIniMissing)
-            UpdateStatus(loader.Message + " Launching anyway.");
-
         PersistCurrentProfileToDisk();
 
         var appId = _activeGame.SteamAppId.Trim();

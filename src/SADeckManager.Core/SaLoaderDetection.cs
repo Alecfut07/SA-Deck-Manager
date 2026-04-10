@@ -5,7 +5,6 @@ public enum SaLoaderHealth
     Ok,
     ModLoaderFolderMissing,
     LoaderDllMissing,
-    LoaderIniMissing
 }
 
 public sealed record SaLoaderStatus(SaLoaderHealth Health, string Message);
