@@ -438,15 +438,14 @@ public partial class MainWindow : Window
             return;
         }
 
+        TryInstallBundledLoaderIfNeeded();
+
         var loader = SaLoaderDetection.Inspect(_activeGame);
         if (loader.Health == SaLoaderHealth.ModLoaderFolderMissing || loader.Health == SaLoaderHealth.LoaderDllMissing)
         {
             UpdateStatus(loader.Message);
             return;
         }
-
-        if (loader.Health == SaLoaderHealth.LoaderIniMissing)
-            UpdateStatus(loader.Message + " Launching anyway.");
 
         PersistCurrentProfileToDisk();
 
@@ -533,7 +532,28 @@ public partial class MainWindow : Window
             return;
         }
 
+        TryInstallBundledLoaderIfNeeded();
+
         var status = SaLoaderDetection.Inspect(_activeGame);
         LoaderStatusText.Text = status.Message;
+    }
+
+    private void TryInstallBundledLoaderIfNeeded()
+    {
+        if (_activeGame is null)
+            return;
+
+        var status = SaLoaderDetection.Inspect(_activeGame);
+        if (status.Health is not (SaLoaderHealth.ModLoaderFolderMissing or SaLoaderHealth.LoaderDllMissing))
+            return;
+
+        var err = SaBundledLoaderInstaller.TryInstallLoaderDllFromBundle(_activeGame);
+        if (err != null)
+        {
+            UpdateStatus($"Could not install bundled loader: {err}");
+            // optional: AppDialogs.ShowErrorAsync(this, err);
+        }
+        else
+            UpdateStatus("Installed mod loader DLL from bundled package.");
     }
 }
