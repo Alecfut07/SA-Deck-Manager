@@ -438,6 +438,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        TryInstallBundledLoaderIfNeeded();
+
         var loader = SaLoaderDetection.Inspect(_activeGame);
         if (loader.Health == SaLoaderHealth.ModLoaderFolderMissing || loader.Health == SaLoaderHealth.LoaderDllMissing)
         {
@@ -532,6 +534,8 @@ public partial class MainWindow : Window
             LoaderStatusText.Text = string.Empty;
             return;
         }
+
+        TryInstallBundledLoaderIfNeeded();
 
         var status = SaLoaderDetection.Inspect(_activeGame);
         LoaderStatusText.Text = status.Message;
