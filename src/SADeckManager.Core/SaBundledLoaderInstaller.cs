@@ -21,8 +21,26 @@ public static class SaBundledLoaderInstaller
             }
         );
 
+    private static void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            var name = Path.GetFileName(file);
+            File.Copy(file, Path.Combine(destDir, name), overwrite: true);
+        }
+
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            var name = Path.GetFileName(dir);
+            CopyDirectory(dir, Path.Combine(destDir, name));
+        }
+    }
+
     /// <summary>
-    /// Ensures <c>mods/.modloader</c> exists and copies the loader DLL from the bundled zip if missing.
+    /// Ensures <c>mods/.modloader</c> exists and, when the main loader DLL is missing,
+    /// extracts the bundled zip and copies the <c>{SADXModLoader|SA2ModLoader}/</c> tree into <c>.modloader</c>.
     /// </summary>
     /// <returns>Error message on failure, or null on success (or if DLL already present).</returns>
     public static string? TryInstallLoaderDllFromBundle(GameInstall game)
@@ -50,11 +68,15 @@ public static class SaBundledLoaderInstaller
             Directory.CreateDirectory(tempRoot);
             ZipFile.ExtractToDirectory(zipPath, tempRoot);
 
-            var nestedDll = Path.Combine(tempRoot, baseName, $"{baseName}.dll");
-            if (!File.Exists(nestedDll))
-                return $"Bundled zip has no file at {baseName}/{baseName}.dll";
+            var extractedLoaderRoot = Path.Combine(tempRoot, baseName);
+            if (!Directory.Exists(extractedLoaderRoot))
+                return $"Bundled zip has no folder: {baseName}/";
 
-            File.Copy(nestedDll, destDll, overwrite: false);
+            CopyDirectory(extractedLoaderRoot, modLoaderDir);
+
+            if (!File.Exists(destDll))
+                return $"Bundled package did not contain {baseName}.dll after extract.";
+
             return null;
         }
         catch (Exception ex)
